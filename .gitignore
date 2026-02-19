@@ -1,0 +1,21 @@
+node_modules/
+.env
+*.db
+.DS_Store
+data/
+
+# Debug/test files
+debug_*.js
+test_*.js
+audit_*.js
+audit_*.txt
+check_*.js
+fetch_*.js
+diagnose_*.js
+verify_*.js
+*.html
+debug_output.txt
+test_output.txt
+generated_post.txt
+full_post.txt
+Post/
