@@ -36,8 +36,12 @@ function getEventEmoji(event) {
     // Check event categories
     const cats = (event.categories || []).map(c => typeof c === 'string' ? c : (c.slug || ''));
 
+    // We use standard Unicode emojis instead of <tg-emoji> because 
+    // standard bots cannot send custom premium emojis without special permissions.
+    // If the channel requires custom emojis, it must be sent by a user, 
+    // or the bot needs to be linked to a premium account.
     function ce(id, fallback) {
-        return `<tg-emoji emoji-id="${id}">${fallback}</tg-emoji>`;
+        return fallback;
     }
 
     // Match by category
@@ -89,16 +93,16 @@ export async function generatePost() {
     const movie = MOVIES[weekIndex % MOVIES.length];
     const recipe = RECIPES[weekIndex % RECIPES.length];
 
-    let post = `Дорогие коллеги <tg-emoji emoji-id="5472055112702629499">👋</tg-emoji>
-Рабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием <tg-emoji emoji-id="5415756754401128020">💙</tg-emoji>
-Запускаем новую рубрику «Чем заняться на выходных в родном городе» <tg-emoji emoji-id="5415803062738504079">🗺️</tg-emoji>
+    let post = `Дорогие коллеги 👋
+Рабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием 💙
+Запускаем новую рубрику «Чем заняться на выходных в родном городе» 🗺️
 Подобрали актуальные мероприятия для спокойного и культурного отдыха.
 
 `;
 
     // Parallel fetch for all cities
     const cityResults = await Promise.all(Object.entries(CITIES).map(async ([slug, city]) => {
-        let cityPost = `<tg-emoji emoji-id="5321275372333979355">📍</tg-emoji> <b>${escapeHTML(city.name)}</b>\n\n`;
+        let cityPost = `📍 <b>${escapeHTML(city.name)}</b>\n\n`;
         let events = [];
 
         try {
@@ -160,10 +164,10 @@ export async function generatePost() {
     const recipeLink = `<a href="${escapeHTML(recipe.url)}">рецепт</a>`;
 
     const movieDesc = cleanDescription(movie.desc, 100) || movie.desc.replace(/\.+$/, '.');
-    post += `А для тех, кто просто хочет отдохнуть от рабочей недели, мы подготовили домашние активности <tg-emoji emoji-id="5420315771991497307">🔥</tg-emoji>
-<tg-emoji emoji-id="5375464961822695044">🎬</tg-emoji> Посмотреть фильм «${movieLink}» - ${escapeHTML(movieDesc)}
-<tg-emoji emoji-id="5390932938646887892">🍰</tg-emoji> ${escapeHTML(cleanTitle(recipe.title))} - ${recipeLink}
-<tg-emoji emoji-id="5346085319638792856">🧘‍♀️</tg-emoji> Прогулка в парках - дышим свежим воздухом
+    post += `А для тех, кто просто хочет отдохнуть от рабочей недели, мы подготовили домашние активности 🔥
+🎬 Посмотреть фильм «${movieLink}» - ${escapeHTML(movieDesc)}
+🍰 ${escapeHTML(cleanTitle(recipe.title))} - ${recipeLink}
+🧘‍♀️ Прогулка в парках - дышим свежим воздухом
 
 Пусть выходные пройдут тепло, интересно и с пользой ✨
 

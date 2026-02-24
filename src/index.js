@@ -263,10 +263,26 @@ bot.action('admin:copy', async (ctx) => {
         return ctx.answerCbQuery('❌ Ошибка: Пост не найден. Сгенерируйте его заново командой /generate', { show_alert: true });
     }
 
-    await ctx.answerCbQuery();
+    try {
+        await ctx.answerCbQuery();
 
-    // Reply with a mono-spaced text block for easy 1-tap copying
-    await ctx.reply(`\`\`\`\n${postText}\n\`\`\``, { parse_mode: 'MarkdownV2' });
+        // Escape HTML for 1-tap copy block so admin sees the raw post and can copy it.
+        const safeText = postText
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        // Telegram message limit is 4096. Split into chunks if longer.
+        const chunkSize = 4000;
+        for (let i = 0; i < safeText.length; i += chunkSize) {
+            const chunk = safeText.slice(i, i + chunkSize);
+            // Reply with a mono-spaced text block for easy 1-tap copying in Telegram
+            await ctx.reply(`<pre>${chunk}</pre>`, { parse_mode: 'HTML' });
+        }
+    } catch (error) {
+        console.error('Copy Error:', error);
+        await ctx.reply(`❌ Ошибка копирования: ${error.message}`);
+    }
 });
 
 /**
