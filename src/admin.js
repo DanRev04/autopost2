@@ -10,14 +10,16 @@ import { cleanDescription, cleanTitle, escapeHTML } from './textUtils.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const POST_IMAGE_PATH = join(__dirname, '..', 'Post', 'telegram-cloud-photo-size-2-5192667404658479432-y.jpg');
 
-// Admin ID from environment
-const ADMIN_ID = process.env.ADMIN_ID ? parseInt(process.env.ADMIN_ID) : null;
+// Admin IDs from environment (supports multiple comma-separated IDs)
+const ADMIN_IDS = process.env.ADMIN_ID
+    ? process.env.ADMIN_ID.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+    : [];
 
 /**
  * Check if user is admin
  */
 export function isAdmin(userId) {
-    return ADMIN_ID && userId === ADMIN_ID;
+    return ADMIN_IDS.includes(userId);
 }
 
 /**
@@ -165,7 +167,7 @@ export async function generatePost() {
 
 Пусть выходные пройдут тепло, интересно и с пользой ✨
 
-Если хотите узнать больше мероприятий в вашем городе — переходите в наш <a href="https://t.me/kudagoduiobot?start=weekend">бот</a> и увидимся там!`;
+<b>Если хотите узнать больше о мероприятиях в вашем городе — переходите в наш <a href="https://t.me/kudagoduiobot?start=weekend">бот</a> и увидимся там!</b>`;
 
     return post;
 }
