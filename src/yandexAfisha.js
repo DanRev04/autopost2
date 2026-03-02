@@ -314,6 +314,16 @@ function parseEvents(apollo) {
             else if (tagCodes.includes('master-class') || tagCodes.includes('masterclass') || tagCodes.includes('education')) category = 'education';
         }
 
+        // Fallback: detect category from URL path
+        if (category === 'other' && ep.url) {
+            const urlPath = ep.url.toLowerCase();
+            if (urlPath.includes('/concert/')) category = 'concert';
+            else if (urlPath.includes('/theatre/') || urlPath.includes('/theater/')) category = 'theater';
+            else if (urlPath.includes('/art/') || urlPath.includes('/exhibition/') || urlPath.includes('/museum/')) category = 'exhibition';
+            else if (urlPath.includes('/festival/')) category = 'festival';
+            else if (urlPath.includes('/masterclass/') || urlPath.includes('/education/')) category = 'education';
+        }
+
         // Build URL
         const eventUrl = ep.url
             ? `${YANDEX_AFISHA.baseUrl}${ep.url}`
@@ -328,11 +338,25 @@ function parseEvents(apollo) {
             }
         }
 
+        // Build description: use argument, or generate fallback based on category
+        let description = ep.argument || '';
+        if (!description) {
+            const fallbacks = {
+                'concert': 'Живое музыкальное выступление для ценителей хорошего звука',
+                'theater': 'Театральная постановка для яркого культурного вечера',
+                'exhibition': 'Выставка с интересными экспонатами и уникальными работами',
+                'festival': 'Фестиваль с разнообразной программой и активностями',
+                'education': 'Познавательное мероприятие для расширения кругозора',
+                'other': 'Интересное мероприятие для культурного отдыха'
+            };
+            description = fallbacks[category] || fallbacks['other'];
+        }
+
         events.push({
             id: ep.id,
             title: ep.title || 'Без названия',
             short_title: ep.title,
-            description: ep.argument || '', // "argument" is the short description on Yandex Afisha
+            description: description,
             price: priceStr,
             site_url: eventUrl,
             place: place,
