@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { fetchEvents } from './events.js';
-import { selectDiverseEvents } from './kudago.js';
+import { selectDiverseEvents } from './yandexAfisha.js';
 import * as gorodzovet from './gorodzovet.js';
 import { CITIES, MOVIES, RECIPES } from './config.js';
 import { cleanDescription, cleanTitle, escapeHTML } from './textUtils.js';
@@ -31,7 +31,7 @@ export function getPostImagePath() {
  * Get custom emoji matching the event type
  */
 function getEventEmoji(event) {
-    // Check KudaGo categories
+    // Check event categories
     const cats = (event.categories || []).map(c => typeof c === 'string' ? c : (c.slug || ''));
 
     function ce(id, fallback) {

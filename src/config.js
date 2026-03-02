@@ -1,5 +1,5 @@
 /**
- * City configuration for KudaGo API
+ * City configuration
  */
 export const CITIES = {
     msk: { name: 'Москва', emoji: '🏙️', slug: 'msk' },
@@ -9,13 +9,10 @@ export const CITIES = {
 };
 
 /**
- * KudaGo API configuration
+ * Yandex Afisha configuration
  */
-export const KUDAGO = {
-    baseUrl: 'http://kudago.com/public-api/v1.4',
-    categories: 'exhibition,concert,theater,festival,party,quest,education',
-    pageSize: 20,
-    fields: 'id,title,description,short_title,dates,price,place,site_url,images,age_restriction,categories'
+export const YANDEX_AFISHA = {
+    baseUrl: 'https://afisha.yandex.ru'
 };
 
 /**
