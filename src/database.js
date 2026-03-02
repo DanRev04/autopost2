@@ -46,11 +46,34 @@ export async function initDatabase() {
             subscribed INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
+        );
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        );
     `);
 
     saveDatabase();
     console.log('✅ Database initialized');
+}
+
+/**
+ * Get saved admin channel ID
+ */
+export function getAdminChannel() {
+    const result = db.exec("SELECT value FROM settings WHERE key = 'admin_channel'");
+    if (result.length > 0 && result[0].values.length > 0) {
+        return result[0].values[0][0];
+    }
+    return null;
+}
+
+/**
+ * Set admin channel ID
+ */
+export function setAdminChannel(channelId) {
+    db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('admin_channel', ?)", [channelId.toString()]);
+    saveDatabase();
 }
 
 /**

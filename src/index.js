@@ -6,7 +6,9 @@ import {
     getUser,
     setUserCity,
     subscribeUser,
-    unsubscribeUser
+    unsubscribeUser,
+    getAdminChannel,
+    setAdminChannel
 } from './database.js';
 import { fetchEvents, formatEventsMessage, fetchEventsByCategory, formatEventsPage } from './events.js';
 import { startScheduler } from './scheduler.js';
@@ -142,6 +144,25 @@ bot.command('unsubscribe', async (ctx) => {
 });
 
 /**
+ * Handle forwarded messages from channels to save the target channel ID
+ */
+bot.on('message', async (ctx, next) => {
+    // Only process if user is admin and message is forwarded from a channel
+    if (isAdmin(ctx.from.id) && ctx.message.forward_origin && ctx.message.forward_origin.type === 'channel') {
+        const channelId = ctx.message.forward_origin.chat.id;
+        const channelTitle = ctx.message.forward_origin.chat.title;
+
+        setAdminChannel(channelId);
+
+        await ctx.reply(`✅ Канал <b>${channelTitle}</b> (${channelId}) сохранен как целевой для публикации постов!\n\nТеперь при нажатии "📢 Опубликовать в канал" посты будут отправляться туда. Не забудьте убедиться, что бот является администратором этого канала.`, { parse_mode: 'HTML' });
+        return; // Stop processing this message further
+    }
+
+    // Otherwise continue to next middleware
+    return next();
+});
+
+/**
  * /generate command - Admin only: Generate post with events
  */
 bot.command('generate', async (ctx) => {
@@ -154,7 +175,16 @@ bot.command('generate', async (ctx) => {
 
     try {
         const postText = await generatePost();
-        const imagePath = getPostImagePath();
+
+        // Store recently generated posts in JS memory for publishing later
+        // A Map of userId -> post text
+        if (!global.generatedPosts) global.generatedPosts = new Map();
+        global.generatedPosts.set(ctx.from.id, postText);
+
+        const keyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('📢 Опубликовать в канал', 'admin:publish')],
+            [Markup.button.callback('📋 Скопировать текст', 'admin:copy')]
+        ]);
 
         try {
             // "Hidden Link" trick for long posts with photo
@@ -168,18 +198,18 @@ bot.command('generate', async (ctx) => {
                     is_disabled: false,
                     show_above_text: true,
                     url: IMAGE_URL
-                }
+                },
+                ...keyboard
             });
         } catch (error) {
             console.error('❌ Sending Error:', error.message);
             // Fallback: send text only
             await ctx.reply(postText, {
                 parse_mode: 'HTML',
-                disable_web_page_preview: true
+                disable_web_page_preview: true,
+                ...keyboard
             });
         }
-
-        await ctx.reply('✅ Пост сгенерирован!');
     } catch (error) {
         console.error('❌ Generator Error:', error);
         if (error.response && error.response.description) {
@@ -188,6 +218,70 @@ bot.command('generate', async (ctx) => {
         } else {
             await ctx.reply(`❌ Ошибка: ${error.message}`);
         }
+    }
+});
+
+bot.action('admin:publish', async (ctx) => {
+    if (!isAdmin(ctx.from.id)) return ctx.answerCbQuery('⛔ Доступ запрещен');
+
+    // Check saved channel ID, or fallback to ENV
+    const CHANNEL_ID = getAdminChannel() || process.env.CHANNEL_ID;
+    if (!CHANNEL_ID) {
+        return ctx.answerCbQuery('❌ Не задан канал!\n\nПерешлите мне любое сообщение из нужного канала, чтобы настроить его, или укажите CHANNEL_ID в .env', { show_alert: true });
+    }
+
+    const postText = global.generatedPosts ? global.generatedPosts.get(ctx.from.id) : null;
+    if (!postText) {
+        return ctx.answerCbQuery('❌ Ошибка: Пост не найден. Сгенерируйте его заново командой /generate', { show_alert: true });
+    }
+
+    try {
+        const IMAGE_URL = 'https://files.catbox.moe/kh2qko.jpg';
+        const postWithPhoto = `<a href="${IMAGE_URL}">&#8203;</a>${postText}`;
+
+        await ctx.telegram.sendMessage(CHANNEL_ID, postWithPhoto, {
+            parse_mode: 'HTML',
+            link_preview_options: {
+                is_disabled: false,
+                show_above_text: true,
+                url: IMAGE_URL
+            }
+        });
+
+        await ctx.answerCbQuery('✅ Пост успешно опубликован в канале!', { show_alert: true });
+    } catch (error) {
+        console.error('Channel Publish Error:', error);
+        await ctx.answerCbQuery(`❌ Ошибка публикации: ${error.message}\nВозможно, бот не является администратором в этом канале.`, { show_alert: true });
+    }
+});
+
+bot.action('admin:copy', async (ctx) => {
+    if (!isAdmin(ctx.from.id)) return ctx.answerCbQuery('⛔ Доступ запрещен');
+
+    const postText = global.generatedPosts ? global.generatedPosts.get(ctx.from.id) : null;
+    if (!postText) {
+        return ctx.answerCbQuery('❌ Ошибка: Пост не найден. Сгенерируйте его заново командой /generate', { show_alert: true });
+    }
+
+    try {
+        await ctx.answerCbQuery();
+
+        // Escape HTML for 1-tap copy block so admin sees the raw post and can copy it.
+        const safeText = postText
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        // Telegram message limit is 4096. Split into chunks if longer.
+        const chunkSize = 4000;
+        for (let i = 0; i < safeText.length; i += chunkSize) {
+            const chunk = safeText.slice(i, i + chunkSize);
+            // Reply with a mono-spaced text block for easy 1-tap copying in Telegram
+            await ctx.reply(`<pre>${chunk}</pre>`, { parse_mode: 'HTML' });
+        }
+    } catch (error) {
+        console.error('Copy Error:', error);
+        await ctx.reply(`❌ Ошибка копирования: ${error.message}`);
     }
 });
 
