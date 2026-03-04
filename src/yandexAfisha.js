@@ -155,7 +155,7 @@ async function fetchApolloState(url, retries = 2) {
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
             if (attempt > 0) {
-                await new Promise(r => setTimeout(r, 500 * attempt));
+                await new Promise(r => setTimeout(r, 2000 * attempt));
                 console.log(`🔄 Retry #${attempt} for ${url}`);
             }
 
@@ -560,8 +560,8 @@ export async function fetchEvents(citySlug) {
         for (const cat of targetCategories) {
             const events = await fetchCategoryPage(citySlug, cat);
             categoryResults.push(events);
-            // Small delay between requests to avoid rate limiting
-            await new Promise(r => setTimeout(r, 300));
+            // Delay between requests to avoid rate limiting
+            await new Promise(r => setTimeout(r, 1500));
         }
 
         // Merge and deduplicate
@@ -734,4 +734,53 @@ export function formatEventsPage(events, cityName, category, page, hasMore) {
     message += `<i>Страница ${page + 1}</i>`;
 
     return message;
+}
+
+// ─── Full Description Fetching ─────────────────────────────────────
+
+/**
+ * Fetch full description from a Yandex Afisha event page
+ * Extracts from embedded JSON data on the page
+ */
+export async function fetchFullDescription(url) {
+    try {
+        const res = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                'Accept': 'text/html',
+                'Accept-Language': 'ru-RU,ru;q=0.9'
+            },
+            timeout: 15000
+        });
+
+        const html = res.data;
+
+        // Try to find description in embedded JSON data
+        const descMatch = html.match(/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+        if (descMatch && descMatch[1].length > 15) {
+            // Unescape JSON string
+            let desc = descMatch[1]
+                .replace(/\\n/g, '. ')
+                .replace(/\\t/g, ' ')
+                .replace(/\\"/g, '"')
+                .replace(/\\\\/g, '\\')
+                .replace(/<[^>]+>/g, '')
+                .replace(/\s+/g, ' ')
+                .replace(/\.{2,}/g, '.')
+                .replace(/\.\s+\./g, '.')
+                .trim();
+
+            // Trim to reasonable length
+            if (desc.length > 250) {
+                desc = desc.substring(0, 247).replace(/\s+\S*$/, '') + '...';
+            }
+
+            return desc;
+        }
+
+        return '';
+    } catch (error) {
+        console.error(`Error fetching description from ${url}:`, error.message);
+        return '';
+    }
 }
