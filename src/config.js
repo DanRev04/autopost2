@@ -19,6 +19,13 @@ export const KUDAGO = {
 };
 
 /**
+ * Yandex Afisha API configuration
+ */
+export const YANDEX_AFISHA = {
+    baseUrl: 'https://afisha.yandex.ru'
+};
+
+/**
  * Russian public holidays (month-day format, repeats yearly unless year-specific)
  * Source: https://www.consultant.ru/law/ref/calendar/proizvodstvennye/
  */
@@ -45,7 +52,8 @@ export const HOLIDAYS = [
 export const FILTERS = {
     excludeKeywords: ['стриптиз', 'casino', '18+', 'night club', 'afterparty', 'эротик', 'казино', 'тур', 'tour'],
     maxPrice: 2000,
-    maxEvents: 10
+    maxConcertPrice: 5000,
+    maxEvents: 30
 };
 
 /**

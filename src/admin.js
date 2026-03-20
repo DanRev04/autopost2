@@ -31,33 +31,17 @@ export function getPostImagePath() {
  * Get custom emoji matching the event type
  */
 function getEventEmoji(event) {
-    // Check KudaGo categories
     const cats = (event.categories || []).map(c => typeof c === 'string' ? c : (c.slug || ''));
-
-    function ce(id, fallback) {
-        return `<tg-emoji emoji-id="${id}">${fallback}</tg-emoji>`;
-    }
-
-    // Match by category
-    if (cats.includes('exhibition')) return ce('5375074927252621134', '🖼️');
-    if (cats.includes('concert')) return ce('5467398680959023683', '🎹');
-    if (cats.includes('theater')) return ce('5359441070201513074', '🎭');
-    if (cats.includes('festival')) return ce('5193018401810822951', '🎉');
-    if (cats.includes('education')) return ce('5373098009640836781', '📚');
-    if (cats.includes('party')) return ce('5193018401810822951', '🎉');
-    if (cats.includes('quest')) return ce('5213306719215577669', '🧩');
-
-    // Fallback: detect from title for GorodZovet events
     const title = (event.title || event.short_title || '').toLowerCase();
-    if (title.includes('выставк') || title.includes('экспозиц')) return ce('5375074927252621134', '🖼️');
-    if (title.includes('концерт') || title.includes('музык')) return ce('5467398680959023683', '🎹');
-    if (title.includes('спектакл') || title.includes('театр') || title.includes('мюзикл')) return ce('5359441070201513074', '🎭');
-    if (title.includes('фестиваль') || title.includes('фест')) return ce('5193018401810822951', '🎉');
-    if (title.includes('лекци') || title.includes('мастер-класс')) return ce('5373098009640836781', '📚');
-    if (title.includes('вечеринк')) return ce('5193018401810822951', '🎉');
-    if (title.includes('квест') || title.includes('квиз')) return ce('5213306719215577669', '🧩');
 
-    return ce('5193018401810822951', '🎉');
+    if (cats.includes('exhibition') || title.includes('выставк') || title.includes('экспозиц')) return '🖼️';
+    if (cats.includes('concert') || title.includes('концерт') || title.includes('музык')) return '🎹';
+    if (cats.includes('theater') || title.includes('спектакл') || title.includes('театр') || title.includes('мюзикл')) return '🎭';
+    if (cats.includes('festival') || title.includes('фестиваль') || title.includes('фест') || cats.includes('party') || title.includes('вечеринк')) return '🎉';
+    if (cats.includes('education') || title.includes('лекци') || title.includes('мастер-класс')) return '📚';
+    if (cats.includes('quest') || title.includes('квест') || title.includes('квиз')) return '🧩';
+
+    return '✨';
 }
 
 /**
@@ -87,15 +71,15 @@ export async function generatePost() {
     const movie = MOVIES[weekIndex % MOVIES.length];
     const recipe = RECIPES[weekIndex % RECIPES.length];
 
-    let post = `Дорогие коллеги <tg-emoji emoji-id="5472055112702629499">👋</tg-emoji>
-Рабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием <tg-emoji emoji-id="5415756754401128020">💙</tg-emoji>
-Подобрали актуальные мероприятия для спокойного и культурного отдыха в нашей рубрике «Чем заняться на выходных в родном городе» <tg-emoji emoji-id="5415803062738504079">🗺️</tg-emoji>
+    let post = `Дорогие коллеги 👋
+Рабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием 💙
+Подобрали актуальные мероприятия для спокойного и культурного отдыха в нашей рубрике «Чем заняться на выходных в родном городе» 🗺️
 
 `;
 
     // Parallel fetch for all cities
     const cityResults = await Promise.all(Object.entries(CITIES).map(async ([slug, city]) => {
-        let cityPost = `<tg-emoji emoji-id="5321275372333979355">📍</tg-emoji> <b>${escapeHTML(city.name)}</b>\n\n`;
+        let cityPost = `📍 <b>${escapeHTML(city.name)}</b>\n\n`;
         let events = [];
 
         try {
@@ -104,7 +88,7 @@ export async function generatePost() {
             console.error(`Error fetching events for ${slug}:`, error.message);
         }
 
-        const topEvents = selectDiverseEvents(events, 3);
+        const topEvents = selectDiverseEvents(events, 4);
         if (topEvents.length === 0) {
             cityPost += `Мероприятия уточняются.\n\n`;
         } else {
@@ -132,7 +116,7 @@ export async function generatePost() {
 
                 let eventDetails = [];
                 if (event.description) {
-                    const desc = cleanDescription(event.description, 250);
+                    const desc = cleanDescription(event.description, 180);
                     if (desc) eventDetails.push(escapeHTML(desc));
                 }
 
@@ -157,14 +141,43 @@ export async function generatePost() {
     const recipeLink = `<a href="${escapeHTML(recipe.url)}">рецепт</a>`;
 
     const movieDesc = cleanDescription(movie.desc, 100) || movie.desc.replace(/\.+$/, '.');
-    post += `А для тех, кто просто хочет отдохнуть от рабочей недели, мы подготовили домашние активности <tg-emoji emoji-id="5420315771991497307">🔥</tg-emoji>
-<tg-emoji emoji-id="5375464961822695044">🎬</tg-emoji> Посмотреть фильм «${movieLink}» - ${escapeHTML(movieDesc)}
-<tg-emoji emoji-id="5390932938646887892">🍰</tg-emoji> ${escapeHTML(cleanTitle(recipe.title))} - ${recipeLink}
-<tg-emoji emoji-id="5346085319638792856">🧘‍♀️</tg-emoji> Прогулка в парках - дышим свежим воздухом
+    post += `А для тех, кто просто хочет отдохнуть от рабочей недели, мы подготовили домашние активности 🔥
+🎬 Посмотреть фильм «${movieLink}» - ${escapeHTML(movieDesc)}
+🍰 ${escapeHTML(cleanTitle(recipe.title))} - ${recipeLink}
+🧘‍♀️ Прогулка в парках - дышим свежим воздухом
 
 Пусть выходные пройдут тепло, интересно и с пользой ✨
 
 Если хотите узнать больше мероприятий в вашем городе — переходите в наш <a href="https://t.me/kudagoduiobot?start=weekend">бот</a> и увидимся там!`;
+
+    // Safety truncation if still over limit
+    if (post.length > 4000) {
+        console.warn(`Post is too long (${post.length}), truncating...`);
+        // Cut at the last complete event block (before \n\n📍 or \n\nА для тех)
+        // to avoid breaking HTML tags
+        let truncated = post.substring(0, 3950);
+        // Find the last complete block boundary (double newline before emoji/section)
+        const lastBlock = truncated.lastIndexOf('\n\n');
+        if (lastBlock > 2000) {
+            truncated = truncated.substring(0, lastBlock);
+        }
+        // Close any unclosed HTML tags
+        const openTags = [];
+        const tagRegex = /<(\/?)(b|a|i|blockquote|code|pre)(?:\s[^>]*)?>/gi;
+        let match;
+        while ((match = tagRegex.exec(truncated)) !== null) {
+            if (match[1] === '/') {
+                openTags.pop();
+            } else {
+                openTags.push(match[2].toLowerCase().replace(/\s.*/, ''));
+            }
+        }
+        // Close tags in reverse order
+        for (let i = openTags.length - 1; i >= 0; i--) {
+            truncated += `</${openTags[i]}>`;
+        }
+        post = truncated;
+    }
 
     return post;
 }

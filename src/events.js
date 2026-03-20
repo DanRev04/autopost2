@@ -1,5 +1,6 @@
 import { fetchEvents as fetchKudaGoEvents, formatEventsMessage as formatKudaGo, fetchEventsByCategory as fetchKudaGoByCat, formatEventsPage as formatKudaGoPage } from './kudago.js';
 import { fetchGorodZovetEvents, formatGorodZovetMessage, fetchGZEventsByCategory } from './gorodzovet.js';
+import { fetchEvents as fetchYandexEvents, formatEventsMessage as formatYandex, fetchEventsByCategory as fetchYandexByCat, formatEventsPage as formatYandexPage } from './yandexAfisha.js';
 import { CITIES } from './config.js';
 
 /**
@@ -8,8 +9,9 @@ import { CITIES } from './config.js';
  * - GorodZovet: smr, sim
  */
 
-const KUDAGO_CITIES = ['msk', 'spb'];
+const KUDAGO_CITIES = [];
 const GORODZOVET_CITIES = ['smr', 'sim'];
+const YANDEX_CITIES = ['msk', 'spb'];
 
 // City slug mapping for GorodZovet
 const GORODZOVET_SLUGS = {
@@ -28,6 +30,8 @@ export async function fetchEvents(citySlug) {
     } else if (GORODZOVET_CITIES.includes(citySlug)) {
         const gorodzovetSlug = GORODZOVET_SLUGS[citySlug];
         return await fetchGorodZovetEvents(gorodzovetSlug);
+    } else if (YANDEX_CITIES.includes(citySlug)) {
+        return await fetchYandexEvents(citySlug);
     } else {
         console.error(`Unknown city slug: ${citySlug}`);
         return [];
@@ -43,6 +47,8 @@ export function formatEventsMessage(events, citySlug) {
 
     if (KUDAGO_CITIES.includes(citySlug)) {
         return formatKudaGo(events, cityName);
+    } else if (YANDEX_CITIES.includes(citySlug)) {
+        return formatYandex(events, cityName);
     } else {
         return formatGorodZovetMessage(events, cityName);
     }
@@ -57,6 +63,8 @@ export async function fetchEventsByCategory(citySlug, category, page = 0) {
     } else if (GORODZOVET_CITIES.includes(citySlug)) {
         const gorodzovetSlug = GORODZOVET_SLUGS[citySlug];
         return await fetchGZEventsByCategory(gorodzovetSlug, category, page);
+    } else if (YANDEX_CITIES.includes(citySlug)) {
+        return await fetchYandexByCat(citySlug, category, page);
     } else {
         return { events: [], hasMore: false };
     }
@@ -71,6 +79,8 @@ export function formatEventsPage(events, citySlug, category, page, hasMore) {
 
     if (KUDAGO_CITIES.includes(citySlug)) {
         return formatKudaGoPage(events, cityName, category, page, hasMore);
+    } else if (YANDEX_CITIES.includes(citySlug)) {
+        return formatYandexPage(events, cityName, category, page, hasMore);
     } else {
         return formatKudaGoPage(events, cityName, category, page, hasMore); // same format
     }

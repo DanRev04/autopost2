@@ -156,7 +156,11 @@ function filterEvents(events) {
 
         // Check price
         const price = parsePrice(event.price);
-        if (price !== null && price > FILTERS.maxPrice) return false;
+        if (price !== null) {
+            const isConcert = getEventType(event) === 'concert';
+            const limit = isConcert ? FILTERS.maxConcertPrice : FILTERS.maxPrice;
+            if (price > limit) return false;
+        }
 
         return true;
     });
@@ -284,13 +288,13 @@ function getEventType(event) {
 
     // Fallback: detect from title/description for GorodZovet or untagged events
     const title = (event.title || event.short_title || '').toLowerCase();
-    if (title.includes('выставк') || title.includes('экспозиц')) return 'exhibition';
-    if (title.includes('концерт') || title.includes('музык')) return 'concert';
+    if (title.includes('выставк') || title.includes('экспозиц') || title.includes('музей')) return 'exhibition';
+    if (title.includes('концерт') || title.includes('музык') || title.includes('шоу') || title.includes('show') || title.includes('выступлен')) return 'concert';
     if (title.includes('спектакл') || title.includes('театр') || title.includes('мюзикл')) return 'theater';
     if (title.includes('фестиваль') || title.includes('фест')) return 'festival';
-    if (title.includes('лекци') || title.includes('мастер-класс')) return 'education';
-    if (title.includes('вечеринк') || title.includes('party')) return 'party';
-    if (title.includes('квест') || title.includes('квиз')) return 'quest';
+    if (title.includes('лекци') || title.includes('мастер-класс') || title.includes('урок') || title.includes('обучен')) return 'education';
+    if (title.includes('вечеринк') || title.includes('party') || title.includes('дискотек') || title.includes('клуб')) return 'party';
+    if (title.includes('квест') || title.includes('квиз') || title.includes('игра')) return 'quest';
 
     return 'other';
 }

@@ -22,6 +22,16 @@ const CATEGORY_PATHS = {
 };
 
 /**
+ * Format date as YYYY-MM-DD
+ */
+function formatDate(date) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+/**
  * Check if a date is a public holiday
  */
 function isHoliday(date) {
@@ -368,6 +378,7 @@ function parseEvents(apollo) {
         });
     }
 
+    console.log(`Parsed ${events.length} gross events from Yandex Afisha`);
     return events;
 }
 
@@ -377,12 +388,48 @@ function parseEvents(apollo) {
  * Filter events based on criteria
  */
 function filterEvents(events) {
+    const { since, until } = getWeekendDates();
+
     return events.filter(event => {
         // Exclude 18+ events
         if (event.age_restriction === '18+') return false;
 
+        // Date check: ensure the event has at least one occurrence within our range
+        if (event.dates && event.dates.length > 0) {
+            const hasWeekendOccurrence = event.dates.some(d => {
+                let ts;
+                if (typeof d === 'number') {
+                    // Detect if milliseconds or seconds
+                    ts = d > 2000000000 ? Math.floor(d / 1000) : d;
+                } else {
+                    ts = Math.floor(new Date(d).getTime() / 1000);
+                }
+
+                if (isNaN(ts)) return false;
+
+                const match = ts >= since && ts <= until;
+                if (match) {
+                    console.error(`      MATCH: ${event.title} on ${new Date(ts * 1000).toISOString()} (ts: ${ts}, range: ${since}-${until})`);
+                }
+                return match;
+            });
+            if (!hasWeekendOccurrence) return false;
+        } else {
+             return false;
+        }
+
         const title = (event.title || '').toLowerCase();
         const description = (event.description || '').toLowerCase();
+
+        // Extra strict check: if month name of far future is in title
+        const farMonths = ['июнь', 'июль', 'август', 'сентябрь', 'октябрь', 'ноябрь', 'декабрь'];
+        if (farMonths.some(m => title.includes(m) || description.includes(m))) {
+             // Only skip if it doesn't also contain the current month name (some events are festivals)
+             if (!title.includes('март') && !description.includes('март')) {
+                 console.error(`      SKIP: ${event.title} (Suspected far-future month in text)`);
+                 return false;
+             }
+        }
 
         const hasExcludedKeyword = FILTERS.excludeKeywords.some(keyword =>
             title.includes(keyword.toLowerCase()) ||
@@ -395,7 +442,9 @@ function filterEvents(events) {
         const priceNumbers = event.price.match(/\d[\d\s]*/);
         if (priceNumbers) {
             const price = parseInt(priceNumbers[0].replace(/\s/g, ''), 10);
-            if (price > FILTERS.maxPrice) return false;
+            const isConcert = getEventType(event) === 'concert';
+            const limit = isConcert ? FILTERS.maxConcertPrice : FILTERS.maxPrice;
+            if (price > limit) return false;
         }
 
         return true;
@@ -454,11 +503,11 @@ function getEventType(event) {
     }
 
     const title = (event.title || '').toLowerCase();
-    if (title.includes('выставк') || title.includes('экспозиц')) return 'exhibition';
-    if (title.includes('концерт') || title.includes('музык')) return 'concert';
+    if (title.includes('выставк') || title.includes('экспозиц') || title.includes('музей')) return 'exhibition';
+    if (title.includes('концерт') || title.includes('музык') || title.includes('шоу') || title.includes('show') || title.includes('выступлен')) return 'concert';
     if (title.includes('спектакл') || title.includes('театр') || title.includes('мюзикл')) return 'theater';
     if (title.includes('фестиваль') || title.includes('фест')) return 'festival';
-    if (title.includes('лекци') || title.includes('мастер-класс')) return 'education';
+    if (title.includes('лекци') || title.includes('мастер-класс') || title.includes('урок')) return 'education';
 
     return 'other';
 }
@@ -535,10 +584,14 @@ export function selectDiverseEvents(events, count = 3) {
 /**
  * Fetch events for a single category from Yandex Afisha
  */
-async function fetchCategoryPage(citySlug, category) {
+async function fetchCategoryPage(citySlug, category, startDate, endDate) {
     const afishaCity = CITY_SLUGS[citySlug] || citySlug;
     const categoryPath = CATEGORY_PATHS[category] || category;
-    const url = `${YANDEX_AFISHA.baseUrl}/${afishaCity}/${categoryPath}`;
+    
+    let url = `${YANDEX_AFISHA.baseUrl}/${afishaCity}/${categoryPath}`;
+    if (startDate && endDate) {
+        url += `?date-from=${formatDate(startDate)}&date-to=${formatDate(endDate)}`;
+    }
 
     console.log(`📡 Fetching: ${url}`);
     const apollo = await fetchApolloState(url);
@@ -553,12 +606,13 @@ async function fetchCategoryPage(citySlug, category) {
  */
 export async function fetchEvents(citySlug) {
     const targetCategories = Object.keys(CATEGORY_PATHS);
+    const { startDate, endDate } = getWeekendDates();
 
     try {
         // Fetch each category sequentially with delay
         const categoryResults = [];
         for (const cat of targetCategories) {
-            const events = await fetchCategoryPage(citySlug, cat);
+            const events = await fetchCategoryPage(citySlug, cat, startDate, endDate);
             categoryResults.push(events);
             // Delay between requests to avoid rate limiting
             await new Promise(r => setTimeout(r, 1500));
@@ -600,8 +654,9 @@ export async function fetchEventsByCategory(citySlug, category, page = 0, perPag
 
         if (category === 'all') {
             const targetCategories = Object.keys(CATEGORY_PATHS);
+            const { startDate, endDate } = getWeekendDates();
             const categoryResults = await Promise.all(
-                targetCategories.map(cat => fetchCategoryPage(citySlug, cat))
+                targetCategories.map(cat => fetchCategoryPage(citySlug, cat, startDate, endDate))
             );
             const seenIds = new Set();
             allEvents = [];
@@ -614,7 +669,8 @@ export async function fetchEventsByCategory(citySlug, category, page = 0, perPag
                 }
             }
         } else {
-            allEvents = await fetchCategoryPage(citySlug, category);
+            const { startDate, endDate } = getWeekendDates();
+            allEvents = await fetchCategoryPage(citySlug, category, startDate, endDate);
         }
 
         // Apply filters and sort

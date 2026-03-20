@@ -145,15 +145,13 @@ bot.command('unsubscribe', async (ctx) => {
  * /generate command - Admin only: Generate post with events
  */
 bot.command('generate', async (ctx) => {
-    if (!isAdmin(ctx.from.id)) {
-        await ctx.reply('⛔ Эта команда доступна только администратору.');
-        return;
-    }
-
+    console.log(`🚀 Admin ${ctx.from.id} triggered /generate`);
     await ctx.reply('⏳ Генерирую пост. Это может занять несколько секунд.');
 
     try {
+        console.log('--- Post generation started ---');
         const postText = await generatePost();
+        console.log('--- Post generation finished ---');
         const imagePath = getPostImagePath();
 
         try {
