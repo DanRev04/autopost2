@@ -61,15 +61,21 @@ bot.command('start', async (ctx) => {
     if (payload === 'weekend') {
         await ctx.reply('🏙️ Выбери город, чтобы посмотреть мероприятия на выходные:', getCityKeyboard());
     } else {
+        // Send persistent keyboard first
         await ctx.reply(
             `👋 Привет, ${ctx.from.first_name || 'друг'}!\n\n` +
-            `Я помогу тебе найти интересные мероприятия на предстоящие выходные.\n\n` +
+            `Я помогу тебе найти интересные мероприятия на предстоящие выходные.`,
+            mainKeyboard
+        );
+        
+        // Then send message with city selection (inline keyboard)
+        await ctx.reply(
             `📌 Как пользоваться:\n` +
             `1️⃣ Выбери город\n` +
             `2️⃣ Выбери категорию (выставки, концерты, театр и др.)\n` +
             `3️⃣ Листай страницы с мероприятиями\n\n` +
             `🏙️ Для начала выбери свой город:`,
-            { ...getCityKeyboard(), ...mainKeyboard }
+            getCityKeyboard()
         );
     }
 });

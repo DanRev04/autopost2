@@ -125,7 +125,7 @@ export async function generatePost() {
                 }
 
                 if (eventDetails.length > 0) {
-                    cityPost += `<blockquote expandable>${eventDetails.join('\n')}</blockquote>\n`;
+                    cityPost += `<blockquote>${eventDetails.join('\n')}</blockquote>\n`;
                 }
 
                 cityPost += '\n';
