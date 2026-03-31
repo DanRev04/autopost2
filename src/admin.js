@@ -79,7 +79,7 @@ export async function generatePost() {
 
     // Parallel fetch for all cities
     const cityResults = await Promise.all(Object.entries(CITIES).map(async ([slug, city]) => {
-        let cityPost = `📍 <b>${escapeHTML(city.name)}</b>\n\n`;
+        let cityPost = `<b>${escapeHTML(city.name)}</b>\n`;
         let events = [];
 
         try {
@@ -88,10 +88,22 @@ export async function generatePost() {
             console.error(`Error fetching events for ${slug}:`, error.message);
         }
 
-        const topEvents = selectDiverseEvents(events, 4);
+        const topEvents = selectDiverseEvents(events, 2);
         if (topEvents.length === 0) {
             cityPost += `Мероприятия уточняются.\n\n`;
         } else {
+            // Parallel fetch full descriptions only for GorodZovet cities
+            if (slug === 'smr' || slug === 'sim') {
+                await Promise.all(topEvents.map(async (event) => {
+                    if (event.url && !event.description_fetched) {
+                        const fullDesc = await gorodzovet.fetchFullDescription(event.url);
+                        if (fullDesc) {
+                            event.description = fullDesc;
+                            event.description_fetched = true;
+                        }
+                    }
+                }));
+            }
 
 
             topEvents.forEach((event, i) => {
@@ -105,17 +117,22 @@ export async function generatePost() {
 
                 let eventDetails = [];
 
+                if (event.description) {
+                    const cleanDesc = cleanDescription(event.description, 70);
+                    if (cleanDesc) eventDetails.push(escapeHTML(cleanDesc));
+                }
 
                 if (event.price && event.price !== 'Цена не указана') {
                     eventDetails.push(escapeHTML(cleanTitle(event.price)));
                 }
 
-                if (eventDetails.length > 0) {
-                    cityPost += `<blockquote>${eventDetails.join('\n')}</blockquote>\n`;
-                }
 
+                if (eventDetails.length > 0) {
+                    cityPost += `<blockquote>${eventDetails.join('\n')}</blockquote>`;
+                }
                 cityPost += '\n';
             });
+            cityPost += '\n';
         }
         return cityPost;
     }));
@@ -136,15 +153,16 @@ export async function generatePost() {
 
 Если хотите узнать больше мероприятий в вашем городе — переходите в наш <a href="https://t.me/kudagoduiobot?start=weekend">бот</a> и увидимся там!`;
 
-    // Safety truncation if still over limit
-    if (post.length > 4000) {
-        console.warn(`Post is too long (${post.length}), truncating...`);
+    // Safety truncation if still over limit (targeting 1024 chars for Max platform)
+    if (post.length > 1000) {
+        console.warn(`Post is too long (${post.length}), truncating to 1000...`);
         // Cut at the last complete event block (before \n\n📍 or \n\nА для тех)
         // to avoid breaking HTML tags
-        let truncated = post.substring(0, 3950);
+        let truncated = post.substring(0, 1000);
+
         // Find the last complete block boundary (double newline before emoji/section)
         const lastBlock = truncated.lastIndexOf('\n\n');
-        if (lastBlock > 2000) {
+        if (lastBlock > 500) {
             truncated = truncated.substring(0, lastBlock);
         }
         // Close any unclosed HTML tags

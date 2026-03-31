@@ -720,6 +720,10 @@ function formatEvent(event, index) {
     let text = `${index + 1}. <a href="${escapeHTML(url)}">${escapeHTML(cleanedTitle)}</a>\n`;
 
     let details = [];
+    if (event.description) {
+        const cleanDesc = cleanDescription(event.description, 70);
+        if (cleanDesc) details.push(escapeHTML(cleanDesc));
+    }
     details.push(`💰 ${escapeHTML(price)}`);
 
     text += `<blockquote expandable>${details.join('\n')}</blockquote>`;

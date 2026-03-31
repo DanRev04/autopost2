@@ -288,11 +288,15 @@ export function formatGorodZovetMessage(events, cityName) {
         const price = event.price || 'Цена не указана';
         message += `${index + 1}. <a href="${escapeHTML(event.url)}">${escapeHTML(cleanedTitle)}</a>\n`;
 
-        // Build blockquote content
+        // Build blockquote content with description + price + place
         let details = [];
+        if (event.description) {
+            const cleanDesc = cleanDescription(event.description, 70);
+            if (cleanDesc) details.push(escapeHTML(cleanDesc));
+        }
         details.push(`💰 ${escapeHTML(price)}`);
 
-        message += `<blockquote expandable>${details.join('\n')}</blockquote>\n\n`;
+        message += `<blockquote>${details.join('\n')}</blockquote>\n\n`;
     });
 
     message += `<i>Всего найдено: ${events.length} событий</i>`;
