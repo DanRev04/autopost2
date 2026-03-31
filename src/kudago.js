@@ -389,21 +389,7 @@ function formatEvent(event, index) {
 
     // Build blockquote content with description + price + place
     let details = [];
-
-    let desc = '';
-    if (event.description) {
-        desc = cleanDescription(event.description, 120);
-    }
-    if (!desc) {
-        desc = getFallbackDescription(event);
-    }
-    if (desc) details.push(escapeHTML(desc));
-
     details.push(`💰 ${escapeHTML(price)}`);
-
-    if (event.place && event.place.title) {
-        details.push(`📍 ${escapeHTML(event.place.title)}`);
-    }
 
     text += `<blockquote expandable>${details.join('\n')}</blockquote>`;
 

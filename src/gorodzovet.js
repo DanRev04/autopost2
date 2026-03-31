@@ -290,16 +290,6 @@ export function formatGorodZovetMessage(events, cityName) {
 
         // Build blockquote content
         let details = [];
-
-        let desc = '';
-        if (event.description) {
-            desc = cleanDescription(event.description, 120);
-        }
-        if (!desc) {
-            desc = getGorodZovetFallbackDesc(title);
-        }
-        if (desc) details.push(escapeHTML(desc));
-
         details.push(`💰 ${escapeHTML(price)}`);
 
         message += `<blockquote expandable>${details.join('\n')}</blockquote>\n\n`;

@@ -92,18 +92,7 @@ export async function generatePost() {
         if (topEvents.length === 0) {
             cityPost += `Мероприятия уточняются.\n\n`;
         } else {
-            // Parallel fetch full descriptions only for GorodZovet cities
-            if (slug === 'smr' || slug === 'sim') {
-                await Promise.all(topEvents.map(async (event) => {
-                    if (event.url && !event.description_fetched) {
-                        const fullDesc = await gorodzovet.fetchFullDescription(event.url);
-                        if (fullDesc) {
-                            event.description = fullDesc;
-                            event.description_fetched = true;
-                        }
-                    }
-                }));
-            }
+
 
             topEvents.forEach((event, i) => {
                 const emoji = getEventEmoji(event);
@@ -115,10 +104,7 @@ export async function generatePost() {
                 cityPost += `${emoji} ${formattedTitle}\n`;
 
                 let eventDetails = [];
-                if (event.description) {
-                    const desc = cleanDescription(event.description, 180);
-                    if (desc) eventDetails.push(escapeHTML(desc));
-                }
+
 
                 if (event.price && event.price !== 'Цена не указана') {
                     eventDetails.push(escapeHTML(cleanTitle(event.price)));

@@ -1,0 +1,144 @@
+🧐 Validating Post Content...
+✅ Database initialized
+📅 Event range: 13.03.2026 — 15.03.2026
+📡 Fetching: https://afisha.yandex.ru/moscow/concert?date-from=2026-03-13&date-to=2026-03-15
+📅 Event range: 13.03.2026 — 15.03.2026
+📡 Fetching: https://afisha.yandex.ru/saint-petersburg/concert?date-from=2026-03-13&date-to=2026-03-15
+Fetching events for samara...
+Fetching events for simferopol...
+  Date 13: found 28 events
+  Date 13: found 61 events
+  Date 14: found 28 events
+Parsed 9 gross events from Yandex Afisha
+  Date 14: found 61 events
+Parsed 26 gross events from Yandex Afisha
+  Date 15: found 28 events
+  Date 15: found 61 events
+Total: 28 events, after filter: 19
+📊 Event type distribution: education: 1, other: 13, exhibition: 5
+  ✅ Picked [exhibition]: Выставка &quot;Волонтеры Крыма СВО&quot;
+  ✅ Picked [education]: Мастер-класс по песочной анимации
+  ✅ Filled [other]: Симферополь, который удивляет
+Total: 61 events, after filter: 52
+📊 Event type distribution: theater: 5, other: 23, concert: 1, quest: 1
+  ✅ Picked [quest]: Экологический квиз &quot;Пусть бьется вечно зеленое сердце планеты&quot;
+  ✅ Picked [concert]: NIGHTWISH show | САМАРА
+  ✅ Picked [theater]: Интерактивный спектакль-заочную экскурсию &quot;Самара-городок&quot;
+  ✅ Filled [other]: Катапульта
+📡 Fetching: https://afisha.yandex.ru/moscow/theatre?date-from=2026-03-13&date-to=2026-03-15
+📡 Fetching: https://afisha.yandex.ru/saint-petersburg/theatre?date-from=2026-03-13&date-to=2026-03-15
+Parsed 18 gross events from Yandex Afisha
+Parsed 28 gross events from Yandex Afisha
+📡 Fetching: https://afisha.yandex.ru/moscow/art?date-from=2026-03-13&date-to=2026-03-15
+📡 Fetching: https://afisha.yandex.ru/saint-petersburg/art?date-from=2026-03-13&date-to=2026-03-15
+Parsed 17 gross events from Yandex Afisha
+Parsed 25 gross events from Yandex Afisha
+📡 Fetching: https://afisha.yandex.ru/moscow/festival?date-from=2026-03-13&date-to=2026-03-15
+📡 Fetching: https://afisha.yandex.ru/saint-petersburg/festival?date-from=2026-03-13&date-to=2026-03-15
+Parsed 22 gross events from Yandex Afisha
+Parsed 22 gross events from Yandex Afisha
+📡 Fetching: https://afisha.yandex.ru/moscow/masterclass?date-from=2026-03-13&date-to=2026-03-15
+📡 Fetching: https://afisha.yandex.ru/saint-petersburg/masterclass?date-from=2026-03-13&date-to=2026-03-15
+Parsed 22 gross events from Yandex Afisha
+Parsed 22 gross events from Yandex Afisha
+📅 Event range: 13.03.2026 — 15.03.2026
+      MATCH: Хлеб on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Mirèle on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Элементарно, Хадсон! Дело о собаке Б. on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: В джазе только девушки on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Вторая международная биеннале «Искусство будущего» on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Futurione on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Комбо. Мир ИИ: создай свой стикерпак + Выставка on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Ни в какие рамки on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+Yandex Afisha msk: fetched 6 events across 5 categories
+📊 Event type distribution: exhibition: 3, concert: 1, education: 1, theater: 1
+  ✅ Picked [exhibition]: Ни в какие рамки
+  ✅ Picked [concert]: Mirèle
+  ✅ Picked [theater]: Элементарно, Хадсон! Дело о собаке Б.
+  ✅ Picked [education]: Комбо. Мир ИИ: создай свой стикерпак + Выставка
+📅 Event range: 13.03.2026 — 15.03.2026
+      MATCH: Princesse Angine on 2026-03-15T00:00:00.000Z (ts: 1773532800, range: 1773410400-1773608399)
+      MATCH: Вдох on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Виктор Цой. Легенда on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Авторский стиль on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Ленинградский зоопарк on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Думская башня on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+      MATCH: Посещение Музея русской сказки с экскурсией on 2026-03-14T00:00:00.000Z (ts: 1773446400, range: 1773410400-1773608399)
+Yandex Afisha spb: fetched 6 events across 5 categories
+📊 Event type distribution: exhibition: 5, concert: 1
+  ✅ Picked [exhibition]: Посещение Музея русской сказки с экскурсией
+  ✅ Picked [concert]: Princesse Angine
+Post is too long (4390), truncating...
+
+--- DATA VERIFICATION ---
+📏 Post Length: 3993 characters
+✅ Length is within limits.
+✅ HTML tags seem balanced.
+
+--- POST PREVIEW ---
+Дорогие коллеги 👋
+Рабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием 💙
+Подобрали актуальные мероприятия для спокойного и культурного отдыха в нашей рубрике «Чем заняться на выходных в родном городе» 🗺️
+
+📍 <b>Москва</b>
+
+🖼️ <a href="https://afisha.yandex.ru/moscow/art/ni-v-kakie-ramki">Ни в какие рамки</a>
+<blockquote expandable>от 1 100 ₽</blockquote>
+
+🎹 <a href="https://afisha.yandex.ru/moscow/concert/mirele-2026">Mirèle</a>
+<blockquote expandable>1 900 ₽</blockquote>
+
+🎭 <a href="https://afisha.yandex.ru/moscow/musical-play/elementarno-khadson-delo-o-sobake-b">Элементарно, Хадсон! Дело о собаке Б.</a>
+<blockquote expandable>от 1 500 ₽</blockquote>
+
+🖼️ <a href="https://afisha.yandex.ru/moscow/art/vystavka-master-klass-mir-ii-sozdai-svoi-stikerpak">Комбо. Мир ИИ: создай свой стикерпак + Выставка</a>
+<blockquote expandable>Мультимедийная выставка и мастер-класс.
+от 1 310 ₽</blockquote>
+
+📍 <b>Санкт-Петербург</b>
+
+🖼️ <a href="https://afisha.yandex.ru/saint-petersburg/art/ekspozitsiia-muzeia-russkoi-skazki-s-ekskursiei">Посещение Музея русской сказки с экскурсией</a>
+<blockquote expandable>от 1 000 ₽</blockquote>
+
+🎹 <a href="https://afisha.yandex.ru/saint-petersburg/concert/princesse-angine-2026">Princesse Angine</a>
+<blockquote expandable>от 2 000 ₽</blockquote>
+
+🖼️ <a href="https://afisha.yandex.ru/saint-petersburg/art/avtorskii-stil">Авторский стиль</a>
+<blockquote expandable>от 400 ₽</blockquote>
+
+🖼️ <a href="https://afisha.yandex.ru/saint-petersburg/art/dumskaia-bashnia">Думская башня</a>
+<blockquote expandable>от 550 ₽</blockquote>
+
+📍 <b>Самара</b>
+
+🧩 <a href="https://gorodzovet.ru/samara/ekologicheskii-kviz-pust-betsia-vechno-event10457410">Экологический квиз &quot;Пусть бьется вечно зеленое сердце планеты&quot;</a>
+<blockquote expandable>300 ₽</blockquote>
+
+✨ <a href="https://gorodzovet.ru/samara/nightwish-show-samara-event11963386">NIGHTWISH show | САМАРА</a>
+<blockquote expandable>Яркое музыкальное шоу московской трибьют-группы высшего уровня.</blockquote>
+
+🎭 <a href="https://gorodzovet.ru/samara/interaktivny-spektakl-zaochnuiu-event12050064">Интерактивный спектакль-заочную экскурсию &quot;Самара-городок&quot;</a>
+<blockquote expandable>Приготовьтесь к удивительному приключению — вас ждёт увлекательное заочное путешествие, полное открытий и ярких эмоций!</blockquote>
+
+✨ <a href="https://gorodzovet.ru/samara/katapulta-event12055604">Катапульта</a>
+<blockquote expandable>Потерявшийся где-то в этой жизни инфантильный неудачник Вадик мечется между долгом и унынием, между необходимостью и обстоятельствами, между мечтой и действительностью.
+2000 ₽</blockquote>
+
+📍 <b>Симферополь</b>
+
+🖼️ <a href="https://gorodzovet.ru/simferopol/vystavka-volontery-kryma-svo-event12017886">Выставка &quot;Волонтеры Крыма СВО&quot;</a>
+<blockquote expandable>В Крыму более 200 волонтерских центров, которые оказывают поддержку участникам Специальной военной операции. В этих центрах работают люди разных возрастов и профессий.</blockquote>
+
+📚 <a href="https://gorodzovet.ru/simferopol/master-klass-po-pesochnoi-animatsii-event11823766">Мастер-класс по песочной анимации</a>
+<blockquote expandable>Мастер-класс знакомит детей и взрослых с необычным видом художественного творчества, объединяющим рисование и элементы анимации.
+100 - 350 ₽</blockquote>
+
+✨ <a href="https://gorodzovet.ru/simferopol/simferopol-kotory-udivliaet-event9471738">Симферополь, который удивляет</a>
+<blockquote expandable>Даже если вы уже бывали в Симферополе, вместе мы взглянем на город другими глазами!
+3500 ₽</blockquote>
+
+✨ <a href="https://gorodzovet.ru/simferopol/puteshestvie-v-dolinu-prividenii-event9211380">Путешествие в Долину Привидений</a>
+<blockquote expandable>13000 ₽</blockquote>
+
+А для тех, кто просто хочет отдохнуть от рабочей недели, мы подготовили домашние активности 🔥
+🎬 Посмотреть фильм «<a href="https://lordfilm.ai/2727-dom-u-dorogi-1989.html">Дом у дороги</a>» - Переосмысление...
