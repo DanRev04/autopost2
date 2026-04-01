@@ -175,8 +175,8 @@ function sortEvents(events) {
         // Permanent events get a penalty
         if (permanentKeywords.some(k => title.includes(k))) score -= 5;
 
-        // Add weekly randomness (0 to 15 points) - this ensures rotation!
-        score += rng() * 15;
+        // Add weekly randomness (0 to 40 points) - this ensures radical rotation!
+        score += rng() * 40;
 
         return { event, score };
     });
