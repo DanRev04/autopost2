@@ -26,13 +26,14 @@ SERVER_PASS="%AnVwYknX3RV"
 REMOTE_DIR="/var/www/autopost2"
 
 # Use rsync with sshpass if available
-RSYNC_CMD="rsync -avz --rsh='ssh -o StrictHostKeyChecking=no' --exclude 'node_modules' --exclude '.git' --exclude 'data' --exclude 'logs'"
+RSYNC_CMD="rsync -avz --exclude 'node_modules' --exclude '.git' --exclude 'data' --exclude 'logs'"
+SSH_OPTS="ssh -o StrictHostKeyChecking=no"
 
 if command -v sshpass >/dev/null 2>&1; then
-    sshpass -p "$SERVER_PASS" $RSYNC_CMD ./ $SERVER:$REMOTE_DIR/
+    sshpass -p "$SERVER_PASS" $RSYNC_CMD -e "$SSH_OPTS" ./ $SERVER:$REMOTE_DIR/
 else
     echo "⚠️  sshpass not found. Please enter server password for rsync."
-    $RSYNC_CMD ./ $SERVER:$REMOTE_DIR/
+    $RSYNC_CMD -e "$SSH_OPTS" ./ $SERVER:$REMOTE_DIR/
 fi
 
 # 3. Restart PM2 on Server
