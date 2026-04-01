@@ -128,7 +128,11 @@ function filterEvents(events) {
 
         if (hasExcludedKeyword) return false;
 
-        return !hasExcludedKeyword;
+        // Check price
+        const price = (event.price || '').toLowerCase();
+        if (price.includes('уточняйте') || price.includes('не указана')) return false;
+
+        return true;
     });
 }
 

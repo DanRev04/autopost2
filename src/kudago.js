@@ -155,7 +155,15 @@ function filterEvents(events) {
         if (hasExcludedKeyword) return false;
 
         // Check price
-        const price = parsePrice(event.price);
+        const rawPrice = event.price || '';
+        if (rawPrice.toLowerCase().includes('уточняйте')) return false;
+
+        const price = parsePrice(rawPrice);
+        if (price === null && !rawPrice.toLowerCase().includes('бесплатно')) {
+            // If price is completely unknown and not free, skip it
+            return false;
+        }
+
         if (price !== null) {
             const isConcert = getEventType(event) === 'concert';
             const limit = isConcert ? FILTERS.maxConcertPrice : FILTERS.maxPrice;
