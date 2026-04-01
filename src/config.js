@@ -50,7 +50,7 @@ export const HOLIDAYS = [
  * Event filtering configuration
  */
 export const FILTERS = {
-    excludeKeywords: ['стриптиз', 'casino', '18+', 'night club', 'afterparty', 'эротик', 'казино', 'тур', 'tour', 'песочная анимация'],
+    excludeKeywords: ['стриптиз', 'casino', '18+', 'night club', 'afterparty', 'эротик', 'казино', 'тур', 'tour', 'песочн'],
     maxPrice: 2000,
     maxConcertPrice: 5000,
     maxEvents: 30
