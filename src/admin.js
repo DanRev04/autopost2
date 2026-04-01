@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import { fetchEvents } from './events.js';
 import { selectDiverseEvents, getFallbackDescription } from './kudago.js';
 import * as gorodzovet from './gorodzovet.js';
-import { CITIES, MOVIES, RECIPES, EMOJI_IDS } from './config.js';
+import { CITIES, MOVIES, RECIPES } from './config.js';
 import { cleanDescription, cleanTitle, escapeHTML } from './textUtils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -27,32 +27,20 @@ export function getPostImagePath() {
 }
 
 /**
- * Wrap emoji in tg-emoji tag for animation (Telegram Premium feature)
- */
-function wrapEmoji(emoji) {
-    const id = EMOJI_IDS[emoji];
-    if (id) {
-        return `<tg-emoji emoji-id="${id}">${emoji}</tg-emoji>`;
-    }
-    return emoji;
-}
-
-/**
  * Get custom emoji matching the event type
  */
 function getEventEmoji(event) {
     const cats = (event.categories || []).map(c => typeof c === 'string' ? c : (c.slug || ''));
     const title = (event.title || event.short_title || '').toLowerCase();
 
-    let emoji = '✨';
-    if (cats.includes('exhibition') || title.includes('выставк') || title.includes('экспозиц')) emoji = '🖼️';
-    else if (cats.includes('concert') || title.includes('концерт') || title.includes('музык')) emoji = '🎹';
-    else if (cats.includes('theater') || title.includes('спектакл') || title.includes('театр') || title.includes('мюзикл')) emoji = '🎭';
-    else if (cats.includes('festival') || title.includes('фестиваль') || title.includes('фест') || cats.includes('party') || title.includes('вечеринк')) emoji = '🎉';
-    else if (cats.includes('education') || title.includes('лекци') || title.includes('мастер-класс')) emoji = '📚';
-    else if (cats.includes('quest') || title.includes('квест') || title.includes('квиз')) emoji = '🧩';
+    if (cats.includes('exhibition') || title.includes('выставк') || title.includes('экспозиц')) return '🖼️';
+    if (cats.includes('concert') || title.includes('концерт') || title.includes('музык')) return '🎹';
+    if (cats.includes('theater') || title.includes('спектакл') || title.includes('театр') || title.includes('мюзикл')) return '🎭';
+    if (cats.includes('festival') || title.includes('фестиваль') || title.includes('фест') || cats.includes('party') || title.includes('вечеринк')) return '🎉';
+    if (cats.includes('education') || title.includes('лекци') || title.includes('мастер-класс')) return '📚';
+    if (cats.includes('quest') || title.includes('квест') || title.includes('квизи')) return '🧩';
 
-    return wrapEmoji(emoji);
+    return '✨';
 }
 
 /**
@@ -119,9 +107,9 @@ export async function generatePost(mode = 'full') {
     let post = '';
     
     if (isShort || isMedium) {
-        post += `Дорогие коллеги ${wrapEmoji('👋')} самое время подумать о выходных!\nПодобрали для вас интересные мероприятия ${wrapEmoji('🗺️')}\n\n`;
+        post += `Дорогие коллеги 👋 самое время подумать о выходных!\nПодобрали для вас интересные мероприятия 🗺️\n\n`;
     } else {
-        post += `Дорогие коллеги ${wrapEmoji('👋')}\nРабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием ${wrapEmoji('💙')}\nПодобрали актуальные мероприятия для спокойного и культурного отдыха в нашей рубрике «Чем заняться на выходных в родном городе» ${wrapEmoji('🗺️')}\n\n`;
+        post += `Дорогие коллеги 👋\nРабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием 💙\nПодобрали актуальные мероприятия для спокойного и культурного отдыха в нашей рубрике «Чем заняться на выходных в родном городе» 🗺️\n\n`;
     }
 
     // Parallel fetch for all cities
@@ -155,9 +143,9 @@ export async function generatePost(mode = 'full') {
 
             // City Header (Bold)
             if (isShort) {
-                cityPost += `${wrapEmoji('📍')} <b>${escapeHTML(city.name)}</b>: `;
+                cityPost += `📍 <b>${escapeHTML(city.name)}</b>: `;
             } else {
-                cityPost += `${wrapEmoji('📍')} <b>${escapeHTML(city.name)}</b>\n`;
+                cityPost += `📍 <b>${escapeHTML(city.name)}</b>\n`;
             }
 
             topEvents.forEach((event, i) => {
@@ -207,10 +195,10 @@ export async function generatePost(mode = 'full') {
     const recipeLink = `<a href="${escapeHTML(recipe.url)}">${escapeHTML(recipe.title)}</a>`;
 
     if (isShort) {
-        post += `${wrapEmoji('🎬')} ${movieLink}\n${wrapEmoji('🍰')} ${recipeLink}\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ${wrapEmoji('✨')}`;
+        post += `🎬 ${movieLink}\n🍰 ${recipeLink}\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ✨`;
     } else {
         const movieDesc = cleanDescription(movie.desc, 150) || movie.desc.replace(/\.+$/, '.');
-        post += `\n${wrapEmoji('🏠')} <b>Если не хотите выходить из дома:</b>\n${wrapEmoji('🎬')} Посмотреть фильм «${movieLink}» — ${escapeHTML(movieDesc)}\n${wrapEmoji('🍰')} ${recipeLink} — рецепт\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ${wrapEmoji('✨')}`;
+        post += `\n🏠 <b>Если не хотите выходить из дома:</b>\n🎬 Посмотреть фильм «${movieLink}» — ${escapeHTML(movieDesc)}\n🍰 ${recipeLink} — рецепт\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ✨`;
     }
 
     // Dynamic safety truncation
