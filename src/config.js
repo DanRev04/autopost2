@@ -219,6 +219,3 @@ export const RECIPES = [
     { "title": "Авокадо with огуречным кремом и креветками", "desc": "нежная праздничная закуска", "url": "https://www.gastronom.ru/recipe/5118/avokado-s-ogurechnym-kremom-i-krevetkami" },
     { "title": "Американское печенье with орехами и корицей", "desc": "ароматное лакомство к чаю", "url": "https://www.gastronom.ru/recipe/42659/amerikanskoe-pechene-s-orehami-i-koricej" }
 ];
-
-    { "title": "Американское печенье with орехами и корицей", "desc": "ароматное лакомство к чаю", "url": "https://www.gastronom.ru/recipe/42659/amerikanskoe-pechene-s-orehami-i-koricej" }
-];
