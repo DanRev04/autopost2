@@ -158,8 +158,8 @@ export async function generatePost(mode = 'full') {
                 }
                 const formattedPrice = cleanTitle(price);
 
-                // Format: Title (Price) - price outside of link
-                const formattedTitle = url ? `<a href="${url}">${escapeHTML(cleanedTitle)}</a> (${escapeHTML(formattedPrice)})` : `${escapeHTML(cleanedTitle)} (${escapeHTML(formattedPrice)})`;
+                // Format: Title (Price) - price outside of link, with zero-width space to prevent link bleed
+                const formattedTitle = url ? `<a href="${url}">${escapeHTML(cleanedTitle)}</a>&#8203; (${escapeHTML(formattedPrice)})` : `${escapeHTML(cleanedTitle)} (${escapeHTML(formattedPrice)})`;
 
                 if (isShort) {
                     cityPost += `${emoji} ${formattedTitle}${i < topEvents.length - 1 ? ', ' : ''}`;
