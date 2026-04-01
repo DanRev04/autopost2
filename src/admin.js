@@ -98,7 +98,9 @@ export async function generatePost(mode = 'full') {
     const isMedium = mode === 'medium';
     
     // Select movie and recipe based on current week
-    const weekIndex = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+    // Shift by 4 days so rotation happens on Monday (Jan 5 1970 was first Monday)
+    const MONDAY_OFFSET = 4 * 24 * 60 * 60 * 1000;
+    const weekIndex = Math.floor((Date.now() + MONDAY_OFFSET) / (7 * 24 * 60 * 60 * 1000));
     const movie = MOVIES[weekIndex % MOVIES.length];
     const recipe = RECIPES[weekIndex % RECIPES.length];
 
