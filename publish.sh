@@ -38,7 +38,7 @@ fi
 
 # 3. Restart PM2 on Server
 echo "⚙️  Restarting bot on server..."
-REMOTE_RESTART="cd $REMOTE_DIR && npm ci --omit=dev && (pm2 restart weekend-events-bot --update-env || pm2 start ecosystem.config.cjs)"
+REMOTE_RESTART="cd $REMOTE_DIR && npm ci --omit=dev && (pm2 stop autopost2 || true) && (pm2 restart weekend-events-bot --update-env || pm2 start ecosystem.config.cjs)"
 
 if command -v sshpass >/dev/null 2>&1; then
     sshpass -p "$SERVER_PASS" ssh -o StrictHostKeyChecking=no $SERVER "$REMOTE_RESTART"
