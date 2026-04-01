@@ -195,7 +195,7 @@ export async function generatePost(mode = 'full') {
         post += `🎬 ${movieLink}\n🍰 ${recipeLink}\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ✨`;
     } else {
         const movieDesc = cleanDescription(movie.desc, 150) || movie.desc.replace(/\.+$/, '.');
-        post += `\n🏠 <b>Дома:</b>\n🎬 Посмотреть фильм «${movieLink}» — ${escapeHTML(movieDesc)}\n🍰 ${recipeLink} — рецепт\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ✨`;
+        post += `\n🏠 <b>Если не хотите выходить из дома:</b>\n🎬 Посмотреть фильм «${movieLink}» — ${escapeHTML(movieDesc)}\n🍰 ${recipeLink} — рецепт\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ✨`;
     }
 
     // Dynamic safety truncation
