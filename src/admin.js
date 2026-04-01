@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url';
 import { fetchEvents } from './events.js';
 import { selectDiverseEvents, getFallbackDescription } from './kudago.js';
 import * as gorodzovet from './gorodzovet.js';
-import { CITIES, MOVIES, RECIPES } from './config.js';
+import { CITIES, MOVIES, RECIPES, EMOJI_IDS } from './config.js';
 import { cleanDescription, cleanTitle, escapeHTML } from './textUtils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
