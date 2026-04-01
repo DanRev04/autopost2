@@ -19,10 +19,30 @@ async function sendWeeklyNotifications(bot) {
             const events = await fetchEvents(city.slug);
             const message = formatEventsMessage(events, city.slug);
 
-            await bot.telegram.sendMessage(user.telegram_id, message, {
-                parse_mode: 'HTML',
-                disable_web_page_preview: true
-            });
+            // Attach photo to newsletter
+            const IMAGE_URL = 'https://files.catbox.moe/kh2qko.jpg';
+            
+            try {
+                // First attempt: Try sending as native photo with the FULL message.
+                // Note: Standard Telegram limit is 1024, but platforms like "Max" may support more.
+                await bot.telegram.sendPhoto(user.telegram_id, IMAGE_URL, {
+                    caption: message,
+                    parse_mode: 'HTML'
+                });
+            } catch (error) {
+                console.error(`❌ Native sendPhoto (full) failed for ${user.telegram_id}:`, error.message);
+                
+                // Fallback: Message with clean link preview (no visible link in text)
+                const msgWithPhoto = `<a href="${IMAGE_URL}">&#8203;</a>${message}`;
+                await bot.telegram.sendMessage(user.telegram_id, msgWithPhoto, {
+                    parse_mode: 'HTML',
+                    link_preview_options: {
+                        is_disabled: false,
+                        show_above_text: true,
+                        url: IMAGE_URL
+                    }
+                });
+            }
 
             console.log(`✅ Sent to user ${user.telegram_id}`);
 

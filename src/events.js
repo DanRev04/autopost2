@@ -9,9 +9,9 @@ import { CITIES } from './config.js';
  * - GorodZovet: smr, sim
  */
 
-const KUDAGO_CITIES = [];
+const KUDAGO_CITIES = ['msk', 'spb'];
 const GORODZOVET_CITIES = ['smr', 'sim'];
-const YANDEX_CITIES = ['msk', 'spb'];
+const YANDEX_CITIES = [];
 
 // City slug mapping for GorodZovet
 const GORODZOVET_SLUGS = {

@@ -2,13 +2,13 @@ import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { fetchEvents } from './events.js';
-import { selectDiverseEvents } from './kudago.js';
+import { selectDiverseEvents, getFallbackDescription, getEventType } from './kudago.js';
 import * as gorodzovet from './gorodzovet.js';
 import { CITIES, MOVIES, RECIPES } from './config.js';
 import { cleanDescription, cleanTitle, escapeHTML } from './textUtils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const POST_IMAGE_PATH = join(__dirname, '..', 'Post', 'telegram-cloud-photo-size-2-5192667404658479432-y.jpg');
+const POST_IMAGE_PATH = join(__dirname, '..', 'Post', 'weekend_post.jpg');
 
 // Admin ID from environment
 const ADMIN_ID = process.env.ADMIN_ID ? parseInt(process.env.ADMIN_ID) : null;
@@ -59,27 +59,75 @@ function decodeHTMLEntities(text) {
 }
 
 /**
- * Escape HTML special characters
+ * Truncate HTML while preserving tags
  */
+function truncateHTML(html, limit) {
+    let visibleChars = 0;
+    let truncatedHtml = '';
+    const tagRegex = /(<[^>]+>)|([^<]+)/g;
+    let match;
+    
+    while ((match = tagRegex.exec(html)) !== null && visibleChars < limit) {
+        if (match[1]) {
+            truncatedHtml += match[1];
+        } else if (match[2]) {
+            const remaining = limit - visibleChars;
+            if (match[2].length <= remaining) {
+                truncatedHtml += match[2];
+                visibleChars += match[2].length;
+            } else {
+                let segment = match[2].substring(0, remaining);
+                const lastSpace = segment.lastIndexOf(' ');
+                if (lastSpace > remaining * 0.7) {
+                    segment = segment.substring(0, lastSpace);
+                }
+                truncatedHtml += segment;
+                visibleChars += segment.length;
+                break;
+            }
+        }
+    }
+    
+    const openTags = [];
+    const tagCloseFinder = /<(\/?)(b|a|i|blockquote|code|pre)(?:\s[^>]*)?>/gi;
+    let tagMatch;
+    while ((tagMatch = tagCloseFinder.exec(truncatedHtml)) !== null) {
+        if (tagMatch[1] === '/') {
+            openTags.pop();
+        } else {
+            openTags.push(tagMatch[2].toLowerCase());
+        }
+    }
+    for (let i = openTags.length - 1; i >= 0; i--) {
+        truncatedHtml += `</${openTags[i]}>`;
+    }
+    return truncatedHtml;
+}
 
 /**
- * Generate full post with events from all cities
+ * Generate post with events from all cities
+ * @param {string} mode - 'full' (~3800), 'medium' (~2000), or 'short' (~1024)
  */
-export async function generatePost() {
-    // Select movie and recipe based on current week for variety and consistency
+export async function generatePost(mode = 'full') {
+    const isShort = mode === 'short';
+    const isMedium = mode === 'medium';
+    
+    // Select movie and recipe based on current week
     const weekIndex = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
     const movie = MOVIES[weekIndex % MOVIES.length];
     const recipe = RECIPES[weekIndex % RECIPES.length];
 
-    let post = `Дорогие коллеги 👋
-Рабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием 💙
-Подобрали актуальные мероприятия для спокойного и культурного отдыха в нашей рубрике «Чем заняться на выходных в родном городе» 🗺️
-
-`;
+    let post = '';
+    
+    if (isShort || isMedium) {
+        post += `Дорогие коллеги 👋 самое время подумать о выходных!\nПодобрали для вас интересные мероприятия 🗺️\n\n`;
+    } else {
+        post += `Дорогие коллеги 👋\nРабочая неделя почти закончилась, а значит самое время подумать о выходных и провести их с пользой и удовольствием 💙\nПодобрали актуальные мероприятия для спокойного и культурного отдыха в нашей рубрике «Чем заняться на выходных в родном городе» 🗺️\n\n`;
+    }
 
     // Parallel fetch for all cities
     const cityResults = await Promise.all(Object.entries(CITIES).map(async ([slug, city]) => {
-        let cityPost = `<b>${escapeHTML(city.name)}</b>\n`;
+        let cityPost = '';
         let events = [];
 
         try {
@@ -88,12 +136,12 @@ export async function generatePost() {
             console.error(`Error fetching events for ${slug}:`, error.message);
         }
 
-        const topEvents = selectDiverseEvents(events, 2);
-        if (topEvents.length === 0) {
-            cityPost += `Мероприятия уточняются.\n\n`;
-        } else {
-            // Parallel fetch full descriptions only for GorodZovet cities
-            if (slug === 'smr' || slug === 'sim') {
+        const countPerCity = isShort ? 1 : 3;
+        const topEvents = selectDiverseEvents(events, countPerCity);
+        
+        if (topEvents.length > 0) {
+            // Fetch full descriptions only for non-short modes and specific cities
+            if (!isShort && (slug === 'smr' || slug === 'sim')) {
                 await Promise.all(topEvents.map(async (event) => {
                     if (event.url && !event.description_fetched) {
                         const fullDesc = await gorodzovet.fetchFullDescription(event.url);
@@ -105,6 +153,12 @@ export async function generatePost() {
                 }));
             }
 
+            // City Header (Bold)
+            if (isShort) {
+                cityPost += `📍 <b>${escapeHTML(city.name)}</b>: `;
+            } else {
+                cityPost += `📍 <b>${escapeHTML(city.name)}</b>\n`;
+            }
 
             topEvents.forEach((event, i) => {
                 const emoji = getEventEmoji(event);
@@ -113,75 +167,99 @@ export async function generatePost() {
                 const cleanedTitle = cleanTitle(title);
                 const formattedTitle = url ? `<a href="${url}">${escapeHTML(cleanedTitle)}</a>` : escapeHTML(cleanedTitle);
 
-                cityPost += `${emoji} ${formattedTitle}\n`;
+                if (isShort) {
+                    cityPost += `${emoji} ${formattedTitle}${i < topEvents.length - 1 ? ', ' : ''}`;
+                } else {
+                    cityPost += `\n${emoji} ${formattedTitle}\n`;
+                    
+                    let price = event.price;
+                    if (!price || price === 'Цена не указана' || price === '0') {
+                        price = 'вход свободный';
+                    }
 
-                let eventDetails = [];
+                    let desc = event.description || getFallbackDescription(event);
+                    // Shorter descriptions for medium mode
+                    const descLimit = isMedium ? 60 : 100;
+                    let cleanDesc = cleanDescription(desc, descLimit);
+                    if (!cleanDesc && desc) {
+                        cleanDesc = desc.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+                        if (cleanDesc.length > descLimit) cleanDesc = cleanDesc.substring(0, descLimit - 3) + '...';
+                    }
+                    if (!cleanDesc) cleanDesc = getFallbackDescription(event);
 
-                if (event.description) {
-                    const cleanDesc = cleanDescription(event.description, 70);
-                    if (cleanDesc) eventDetails.push(escapeHTML(cleanDesc));
+                    cityPost += `<blockquote>${escapeHTML(cleanDesc)}\n${escapeHTML(cleanTitle(price))}</blockquote>\n`;
                 }
-
-                if (event.price && event.price !== 'Цена не указана') {
-                    eventDetails.push(escapeHTML(cleanTitle(event.price)));
-                }
-
-
-                if (eventDetails.length > 0) {
-                    cityPost += `<blockquote>${eventDetails.join('\n')}</blockquote>`;
-                }
-                cityPost += '\n';
             });
-            cityPost += '\n';
+            if (isShort) cityPost += '\n';
         }
         return cityPost;
     }));
 
-    post += cityResults.join('');
+    post += cityResults.join(isShort ? '\n' : '');
 
-    const cleanedMovieTitle = cleanTitle(movie.title.replace(/[«»]/g, ''));
-    const movieLink = `<a href="${escapeHTML(movie.url)}">${escapeHTML(cleanedMovieTitle)}</a>`;
-    const recipeLink = `<a href="${escapeHTML(recipe.url)}">рецепт</a>`;
-
-    const movieDesc = cleanDescription(movie.desc, 100) || movie.desc.replace(/\.+$/, '.');
-    post += `А для тех, кто просто хочет отдохнуть от рабочей недели, мы подготовили домашние активности 🔥
-🎬 Посмотреть фильм «${movieLink}» - ${escapeHTML(movieDesc)}
-🍰 ${escapeHTML(cleanTitle(recipe.title))} - ${recipeLink}
-🧘‍♀️ Прогулка в парках - дышим свежим воздухом
-
-Пусть выходные пройдут тепло, интересно и с пользой ✨
-
-Если хотите узнать больше мероприятий в вашем городе — переходите в наш <a href="https://t.me/kudagoduiobot?start=weekend">бот</a> и увидимся там!`;
-
-    // Safety truncation if still over limit (targeting 1024 chars for Max platform)
-    if (post.length > 1000) {
-        console.warn(`Post is too long (${post.length}), truncating to 1000...`);
-        // Cut at the last complete event block (before \n\n📍 or \n\nА для тех)
-        // to avoid breaking HTML tags
-        let truncated = post.substring(0, 1000);
-
-        // Find the last complete block boundary (double newline before emoji/section)
-        const lastBlock = truncated.lastIndexOf('\n\n');
-        if (lastBlock > 500) {
-            truncated = truncated.substring(0, lastBlock);
-        }
-        // Close any unclosed HTML tags
-        const openTags = [];
-        const tagRegex = /<(\/?)(b|a|i|blockquote|code|pre)(?:\s[^>]*)?>/gi;
-        let match;
-        while ((match = tagRegex.exec(truncated)) !== null) {
-            if (match[1] === '/') {
-                openTags.pop();
-            } else {
-                openTags.push(match[2].toLowerCase().replace(/\s.*/, ''));
-            }
-        }
-        // Close tags in reverse order
-        for (let i = openTags.length - 1; i >= 0; i--) {
-            truncated += `</${openTags[i]}>`;
-        }
-        post = truncated;
+    if (isShort || isMedium) {
+        const movieLink = `<a href="${escapeHTML(movie.url)}">${escapeHTML(cleanTitle(movie.title.replace(/[«»]/g, '')))}</a>`;
+        post += `\n🎬 ${movieLink}\n🍰 <a href="${escapeHTML(recipe.url)}">рецепт</a>\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ✨`;
+    } else {
+        const cleanedMovieTitle = cleanTitle(movie.title.replace(/[«»]/g, ''));
+        const movieLink = `<a href="${escapeHTML(movie.url)}">${escapeHTML(cleanedMovieTitle)}</a>`;
+        const recipeLink = `<a href="${escapeHTML(recipe.url)}">рецепт</a>`;
+        const movieDesc = cleanDescription(movie.desc, 200) || movie.desc.replace(/\.+$/, '.');
+        post += `\n🏠 <b>Если не хотите выходить из дома:</b>\n🎬 ${movieLink} — ${escapeHTML(movieDesc)}\n🍰 ${recipeLink}\n\n<a href="https://t.me/kudagoduiobot?start=weekend">Больше</a> ✨`;
     }
 
+    // Dynamic safety truncation
+    let targetLimit = 3800;
+    if (isMedium) targetLimit = 2000;
+    if (isShort) targetLimit = 1000;
+
+    const renderedLength = post.replace(/<[^>]+>/g, '').length;
+    
+    if (renderedLength > targetLimit) {
+        console.warn(`Post mode ${mode} is too long (${renderedLength}), truncating to ${targetLimit}...`);
+        
+        let visibleChars = 0;
+        let truncatedHtml = '';
+        const tagRegex = /(<[^>]+>)|([^<]+)/g;
+        let match;
+        
+        while ((match = tagRegex.exec(post)) !== null && visibleChars < targetLimit) {
+            if (match[1]) {
+                truncatedHtml += match[1];
+            } else if (match[2]) {
+                const remaining = targetLimit - visibleChars;
+                if (match[2].length <= remaining) {
+                    truncatedHtml += match[2];
+                    visibleChars += match[2].length;
+                } else {
+                    let segment = match[2].substring(0, remaining);
+                    const lastSpace = segment.lastIndexOf(' ');
+                    if (lastSpace > remaining * 0.7) {
+                        segment = segment.substring(0, lastSpace);
+                    }
+                    truncatedHtml += segment;
+                    visibleChars += segment.length;
+                    break;
+                }
+            }
+        }
+        
+        // Re-calculate open tags to close them properly
+        const openTags = [];
+        const tagCloseFinder = /<(\/?)(b|a|i|blockquote|code|pre)(?:\s[^>]*)?>/gi;
+        let tagMatch;
+        while ((tagMatch = tagCloseFinder.exec(truncatedHtml)) !== null) {
+            if (tagMatch[1] === '/') {
+                openTags.pop();
+            } else {
+                openTags.push(tagMatch[2].toLowerCase());
+            }
+        }
+        for (let i = openTags.length - 1; i >= 0; i--) {
+            truncatedHtml += `</${openTags[i]}>`;
+        }
+        post = truncatedHtml;
+    }
+    
     return post;
 }

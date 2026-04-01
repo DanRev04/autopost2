@@ -155,43 +155,47 @@ bot.command('generate', async (ctx) => {
     await ctx.reply('⏳ Генерирую пост. Это может занять несколько секунд.');
 
     try {
-        console.log('--- Post generation started ---');
-        const postText = await generatePost();
-        console.log('--- Post generation finished ---');
         const imagePath = getPostImagePath();
-
+        
+        // Attempt 1: Native photo with MEDIUM text (~2048 chars) for Premium users/Max platform
         try {
-            // "Hidden Link" trick for long posts with photo
-            // Using HTML format for cleaner text escaping
-            const IMAGE_URL = 'https://files.catbox.moe/kh2qko.jpg';
-            const postWithPhoto = `<a href="${IMAGE_URL}">&#8203;</a>${postText}`;
+            const postTextMedium = await generatePost('medium');
+            await ctx.replyWithPhoto({ source: imagePath }, {
+                caption: postTextMedium,
+                parse_mode: 'HTML'
+            });
+        } catch (mediumError) {
+            console.error('❌ Medium native caption failed:', mediumError.message);
 
-            await ctx.reply(postWithPhoto, {
-                parse_mode: 'HTML',
-                link_preview_options: {
-                    is_disabled: false,
-                    show_above_text: true,
-                    url: IMAGE_URL
-                }
-            });
-        } catch (error) {
-            console.error('❌ Sending Error:', error.message);
-            // Fallback: send text only
-            await ctx.reply(postText, {
-                parse_mode: 'HTML',
-                disable_web_page_preview: true
-            });
+            // Attempt 2: Native photo with SHORT text (1024 chars)
+            try {
+                const postTextShort = await generatePost('short');
+                await ctx.replyWithPhoto({ source: imagePath }, {
+                    caption: postTextShort,
+                    parse_mode: 'HTML'
+                });
+            } catch (shortError) {
+                console.error('❌ Short native caption failed:', shortError.message);
+                
+                // Final fallback: Send full post with hidden preview trick
+                const postTextFull = await generatePost('full');
+                const IMAGE_URL = 'https://files.catbox.moe/kh2qko.jpg';
+                const postWithHiddenPhoto = `<a href="${IMAGE_URL}">&#8203;</a>${postTextFull}`;
+
+                await ctx.reply(postWithHiddenPhoto, {
+                    parse_mode: 'HTML',
+                    link_preview_options: {
+                        is_disabled: false,
+                        show_above_text: true,
+                        url: IMAGE_URL
+                    }
+                });
+            }
         }
-
-        await ctx.reply('✅ Пост сгенерирован!');
     } catch (error) {
         console.error('❌ Generator Error:', error);
-        if (error.response && error.response.description) {
-            console.error('❌ Telegram Response:', error.response.description);
-            await ctx.reply(`❌ Ошибка Telegram: ${error.response.description}`);
-        } else {
-            await ctx.reply(`❌ Ошибка: ${error.message}`);
-        }
+        const errorMsg = error.response?.description || error.message;
+        await ctx.reply(`❌ Ошибка: ${errorMsg}`);
     }
 });
 

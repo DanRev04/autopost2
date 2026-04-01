@@ -274,7 +274,7 @@ export async function fetchEvents(citySlug) {
  * Checks ALL category tags, not just the first one
  * Also detects type from title for sources without category data (GorodZovet)
  */
-function getEventType(event) {
+export function getEventType(event) {
     // Target types we want to diversify across
     const targetTypes = ['exhibition', 'concert', 'theater', 'festival', 'education', 'party', 'quest'];
 
@@ -403,7 +403,7 @@ function formatEvent(event, index) {
 /**
  * Generate a fallback description based on event type
  */
-function getFallbackDescription(event) {
+export function getFallbackDescription(event) {
     const type = getEventType(event);
     const fallbacks = {
         'exhibition': 'Выставка с интересными экспонатами и уникальными работами',
