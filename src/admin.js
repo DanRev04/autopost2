@@ -159,7 +159,9 @@ export async function generatePost(mode = 'full') {
                 const formattedPrice = cleanTitle(price);
 
                 // Format: Title (Price) - price outside of link, with zero-width space to prevent link bleed
-                const formattedTitle = url ? `<a href="${url}">${escapeHTML(cleanedTitle)}</a>&#8203; (${escapeHTML(formattedPrice)})` : `${escapeHTML(cleanedTitle)} (${escapeHTML(formattedPrice)})`;
+                // and another ZWSP inside the price to prevent phone number detection (e.g. 300-1000)
+                const sanitizedPrice = formattedPrice.replace(/-/g, '&#8203;-&#8203;');
+                const formattedTitle = url ? `<a href="${url}">${escapeHTML(cleanedTitle)}</a>&#8203; (${escapeHTML(sanitizedPrice)})` : `${escapeHTML(cleanedTitle)} (${escapeHTML(sanitizedPrice)})`;
 
                 if (isShort) {
                     cityPost += `${emoji} ${formattedTitle}${i < topEvents.length - 1 ? ', ' : ''}`;
