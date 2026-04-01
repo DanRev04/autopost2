@@ -137,32 +137,54 @@ function filterEvents(events) {
 }
 
 /**
- * Sort events by priority (prioritizes one-off events like concerts and theater)
+ * Get current week number for seeding (flips on Monday)
+ */
+function getWeekSeed() {
+    const MONDAY_OFFSET = 4 * 24 * 60 * 60 * 1000;
+    return Math.floor((Date.now() + MONDAY_OFFSET) / (7 * 24 * 60 * 60 * 1000));
+}
+
+/**
+ * Simple seeded random number generator
+ */
+function seededRandom(seed) {
+    let s = seed;
+    return function () {
+        s = (s * 1103515245 + 12345) & 0x7fffffff;
+        return s / 0x7fffffff;
+    };
+}
+
+/**
+ * Sort events by priority with weekly rotation
  */
 function sortEvents(events) {
+    const weekSeed = getWeekSeed();
+    const rng = seededRandom(weekSeed);
+
     const oneOffKeywords = ['концерт', 'мюзикл', 'спектакль', 'фестиваль', 'вечеринка', 'лекция', 'мастер-класс'];
     const permanentKeywords = ['выставка', 'экспозиция', 'экскурсия'];
 
-    return events.sort((a, b) => {
-        const aTitle = (a.title || '').toLowerCase();
-        const bTitle = (b.title || '').toLowerCase();
+    const scored = events.map(event => {
+        let score = 0;
+        const title = (event.title || '').toLowerCase();
 
-        // Check if event is one-off
-        const aIsOneOff = oneOffKeywords.some(k => aTitle.includes(k));
-        const bIsOneOff = oneOffKeywords.some(k => bTitle.includes(k));
+        // One-off events get a priority bonus
+        if (oneOffKeywords.some(k => title.includes(k))) score += 10;
+        
+        // Permanent events get a penalty
+        if (permanentKeywords.some(k => title.includes(k))) score -= 5;
 
-        if (aIsOneOff && !bIsOneOff) return -1;
-        if (!aIsOneOff && bIsOneOff) return 1;
+        // Add weekly randomness (0 to 15 points) - this ensures rotation!
+        score += rng() * 15;
 
-        // Check if event is permanent
-        const aIsPermanent = permanentKeywords.some(k => aTitle.includes(k));
-        const bIsPermanent = permanentKeywords.some(k => bTitle.includes(k));
-
-        if (aIsPermanent && !bIsPermanent) return 1;
-        if (!aIsPermanent && bIsPermanent) return -1;
-
-        return 0;
+        return { event, score };
     });
+
+    // Sort by score descending
+    scored.sort((a, b) => b.score - a.score);
+
+    return scored.map(s => s.event);
 }
 
 /**
